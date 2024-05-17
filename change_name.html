@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>厨房名字改颜色以及大小工具</title>
+</head>
+
+<body>
+  <label style="font-size: 35px; display: block">制作者: <a href="https://space.bilibili.com/298411931">yc阿哲</a></label>
+  <label style="font-size: 35px; display: block"> 使用方法: </label>
+  <label style="font-size: 20px; display: block">在下方的输入框中输入你的名字, 然后选中需要改的字,
+    去右边自行修改颜色和大小, 改完点击"立即复制"即可去MOD菜单中粘贴使用...
+    注意输入框每变更一次, 样式会重置, 所以改完颜色和字体之后
+    确保在输入框外点一下 以取消选定状态...</label>
+  <label style="font-size: 15px; display: block; color: #006f0f">可能会有点小bug, 但我精力有限, 随缘修复, 将就着用吧, 可能以后此网页会伴随安装器一起更新的...</label>
+  <br>
+  <textarea id="textInput" placeholder="在这里输入待修改的名字..." style="font-size: 35px; width: 80%; height: 120px"></textarea>
+
+  <div id="popupMenu" style="
+        display: block;
+        position: absolute;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        padding: 5px;
+        width: 20%;
+      ">
+    <label for="colorPicker" style="display: block">选择颜色：</label>
+    <input type="color" id="colorPicker" style="display: block; margin-bottom: 5px" />
+    <label for="fontSize" style="display: block">选择字号：</label>
+    <input type="range" id="fontSize" min="2" max="70" value="35" style="display: block; margin-bottom: 5px" />
+    <span id="fontSizeValue">35</span>像素
+  </div>
+
+  <div id="styledText">
+    <label style="font-size: 35px">这里显示的是预览...</label>
+  </div>
+
+  <!-- 添加文本框 -->
+  <textarea id="styledTextSource" placeholder="样式化文本源码" style="width: 100%; height: 100px; margin-top: 10px"></textarea>
+  <br><br>
+  <!-- 添加立即复制按钮 -->
+  <button onclick="copyToClipboard()">立即复制</button>
+  <br><br><br><br><br><br><br><br>
+  <div class="counter">
+    <span class="text">本网页访问计数</span><br>
+    <img src="https://access-counter.vercel.app/api/counter?name=azhesOvercookedRenamePlugin" alt="计数器图片" />
+  </div>
+  <script>
+    // 在页面加载和窗口大小调整时设置弹出菜单的位置
+    window.addEventListener('DOMContentLoaded', updatePopupMenuPosition)
+    window.addEventListener('resize', updatePopupMenuPosition)
+
+    function updatePopupMenuPosition() {
+      // 获取textInput和popupMenu元素
+      var textInput = document.getElementById('textInput')
+      var popupMenu = document.getElementById('popupMenu')
+
+      // 获取textInput的边界信息
+      var textInputRect = textInput.getBoundingClientRect()
+
+      // 计算popupMenu应该显示的位置
+      var popupMenuLeft = window.innerWidth * 0.8 // 页面宽度的85%
+      var popupMenuTop = textInputRect.top
+
+      // 设置popupMenu的位置
+      popupMenu.style.left = popupMenuLeft + 'px'
+      popupMenu.style.top = popupMenuTop + 'px'
+    }
+
+    var defaultColor = '#000000'
+    var defaultFontSize = '35px'
+
+    var prevSelectionStart = 0
+    var prevSelectionEnd = 0
+
+    // 应用样式函数
+    function applyStyle() {
+      var textInput = document.getElementById('textInput')
+      var start = textInput.selectionStart
+      var end = textInput.selectionEnd
+
+      var color = document.getElementById('colorPicker').value
+      var fontSize = document.getElementById('fontSize').value
+
+      // 获取当前文本内容
+      var currentText = document.getElementById('styledText').innerText
+
+      // 更新样式
+      var styledText = document.getElementById('styledText').childNodes
+
+      for (var i = start; i < end; i++) {
+        styledText[i].style.color = color
+        styledText[i].style.fontSize = fontSize + 'px' // 将fontSize转为像素单位
+      }
+
+      // 更新上一次的选择范围
+      prevSelectionStart = start
+      prevSelectionEnd = end
+    }
+
+    // 更新文本样式函数
+    function updateStyledText() {
+      var textInput = document.getElementById('textInput').value
+      var styledText = ''
+
+      // 清空原有的样式文本
+      document.getElementById('styledText').innerHTML = ''
+
+      // 重新应用样式
+      for (var i = 0; i < textInput.length; i++) {
+        var char = textInput[i]
+        var span = document.createElement('span')
+        span.textContent = char
+        span.style.color = defaultColor
+        span.style.fontSize = defaultFontSize
+        document.getElementById('styledText').appendChild(span)
+      }
+
+      // 应用样式
+      applyStyle()
+    }
+
+    // 输入框内容变化时更新文本样式
+    document
+      .getElementById('textInput')
+      .addEventListener('input', function (event) {
+        updateStyledText()
+        updateStyledTextSource()
+      })
+    // 设置颜色选择器的input事件
+    document
+      .getElementById('colorPicker')
+      .addEventListener('input', function (event) {
+        applyStyle()
+        updateStyledTextSource()
+      })
+
+    document
+      .getElementById('fontSize')
+      .addEventListener('input', function (event) {
+        applyStyle()
+        updateStyledTextSource()
+      })
+
+    // 当鼠标在textInput内按下时隐藏弹出菜单
+
+    // 当鼠标在textInput内抬起时显示弹出菜单
+    document
+      .getElementById('textInput')
+      .addEventListener('mouseup', function (event) {
+        console.log('鼠标抬起')
+
+        // 重置颜色和字体滑块为35
+        document.getElementById('colorPicker').value = '#000000'
+        document.getElementById('fontSize').value = 35
+        document.getElementById('fontSizeValue').textContent = '35'
+      })
+
+    // 更新源码文本
+    function updateStyledTextSource() {
+      var styledTextSource = document.getElementById('styledTextSource')
+      var styledTextDiv = document.getElementById('styledText')
+      var styledText = styledTextDiv.childNodes
+      var styledTextHtml = ''
+      var currentFontSize = defaultFontSize
+      var currentColor = defaultColor
+      var mergedText = ''
+      var lastSizeTagIndex = -1 // 用于记录最近的 <size> 标签的索引
+
+      // 复制 styledText 的内容到一个新的数组中
+      var styledTextCopy = Array.from(styledText)
+
+      styledTextCopy.forEach(function (node, index) {
+        var color = node.style.color || defaultColor
+        color = rgbToHex(color) // 将 RGB 颜色转换为十六进制
+        var fontSize = node.style.fontSize || defaultFontSize
+        // 去除 fontSize 中的 px
+        fontSize = fontSize.replace('px', '')
+
+        // 如果当前节点与前一个节点的字号和颜色相同，则合并文本
+        if (fontSize === currentFontSize && color === currentColor) {
+          mergedText += node.textContent
+        } else {
+          // 否则，添加前一个节点的合并文本到 styledTextHtml 中
+          if (mergedText) {
+            // 添加前一个节点的合并文本到 styledTextHtml 中，如果最近的 <size> 标签不在 mergedText 中
+            if (lastSizeTagIndex === -1 || index > lastSizeTagIndex) {
+              styledTextHtml += `<size=${currentFontSize}><color=${currentColor}>${mergedText}</color></size>`
+            } else {
+              styledTextHtml += mergedText
+            }
+            mergedText = ''
+          }
+
+          // 更新当前字号和颜色
+          currentFontSize = fontSize
+          currentColor = color
+
+          // 添加当前节点的文本到合并文本中
+          mergedText += node.textContent
+        }
+
+        // 如果当前节点是 <size> 标签，则记录其索引
+        if (node.nodeName.toLowerCase() === 'size') {
+          lastSizeTagIndex = index
+        }
+
+        // 如果是最后一个节点，也添加到 styledTextHtml 中
+        if (index === styledTextCopy.length - 1 && mergedText) {
+          // 添加前一个节点的合并文本到 styledTextHtml 中，如果最近的 <size> 标签不在 mergedText 中
+          if (lastSizeTagIndex === -1 || index > lastSizeTagIndex) {
+            styledTextHtml += `<size=${currentFontSize}><color=${currentColor}>${mergedText}</color></size>`
+          } else {
+            styledTextHtml += mergedText
+          }
+        }
+      })
+
+      // 删除所有 <size=35> 与后面离得最近的 </size>
+      styledTextHtml = styledTextHtml.replace(/<size=35>(.*?)<\/size>/g, '$1')
+
+      // 删除所有 <color=#000000> 与后面离得最近的 </color>
+      styledTextHtml = styledTextHtml.replace(
+        /<color=#000000>(.*?)<\/color>/g,
+        '$1'
+      )
+
+      // 更新文本框内容
+      styledTextSource.value = styledTextHtml
+    }
+
+    // RGB 颜色值转换为十六进制
+    function rgbToHex(rgb) {
+      // 如果颜色已经是十六进制格式，则直接返回
+      if (/^#[0-9A-F]{6}$/i.test(rgb)) {
+        return rgb
+      }
+
+      // 提取 RGB 颜色值的三个分量
+      var digits = /(.*?)rgb\((\d+), (\d+), (\d+)\)/.exec(rgb)
+
+      // 将 RGB 颜色值转换为十六进制格式
+      var red = parseInt(digits[2], 10).toString(16)
+      var green = parseInt(digits[3], 10).toString(16)
+      var blue = parseInt(digits[4], 10).toString(16)
+
+      // 补齐颜色值长度
+      red = red.length === 1 ? '0' + red : red
+      green = green.length === 1 ? '0' + green : green
+      blue = blue.length === 1 ? '0' + blue : blue
+
+      return '#' + red + green + blue
+    }
+
+    // 复制文本框内容到剪贴板
+    function copyToClipboard() {
+      var copyText = document.getElementById('styledTextSource')
+      copyText.select()
+      document.execCommand('copy')
+      alert('已复制到剪贴板！')
+    }
+  </script>
+</body>
+
+</html>
